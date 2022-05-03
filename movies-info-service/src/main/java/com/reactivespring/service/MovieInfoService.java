@@ -38,7 +38,7 @@ public class MovieInfoService {
                 });
     }
 
-    public Mono<Void> deleteMovieInfo(String id) {
+    public Mono<Void> deleteMovieInfoById(String id) {
        /* return movieInfoRepository.findById(id)
                 .flatMap(existingMovieInfo -> {
                     movieInfoRepository.delete(existingMovieInfo);

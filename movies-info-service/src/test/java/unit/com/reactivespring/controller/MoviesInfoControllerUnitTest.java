@@ -125,7 +125,7 @@ public class MoviesInfoControllerUnitTest {
     void deleteMovieInfo() {
         String movieInfoId = "abc";
 
-        Mockito.when(movieInfoService.getMovieInfoById(Mockito.eq(movieInfoId)))
+        Mockito.when(movieInfoService.deleteMovieInfoById(Mockito.eq(movieInfoId)))
                 .thenReturn(Mono.empty());
 
         webTestClient.delete()
