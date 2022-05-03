@@ -27,6 +27,10 @@ public class MovieInfoService {
         return movieInfoRepository.findById(id);
     }
 
+    public Flux<MovieInfo> getMovieInfoByYear(Integer year) {
+        return movieInfoRepository.findByYear(year);
+    }
+
     public Mono<MovieInfo> updateMovieInfo(String id, MovieInfo updatedMovieInfo) {
         return movieInfoRepository.findById(id)
                 .flatMap(existingMovieInfo -> {
@@ -45,4 +49,6 @@ public class MovieInfoService {
                 });*/
         return movieInfoRepository.deleteById(id);
     }
+
+
 }
