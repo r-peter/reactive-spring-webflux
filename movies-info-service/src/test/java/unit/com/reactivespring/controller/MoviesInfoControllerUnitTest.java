@@ -92,6 +92,26 @@ public class MoviesInfoControllerUnitTest {
     }
 
     @Test
+    void addMovieInfo_validation() {
+        MovieInfo newMovieInfo = new MovieInfo(null, "",
+                -2005, List.of(""), LocalDate.parse("2016-03-25"));
+
+        webTestClient.post()
+                .uri(MOVIES_INFO_URL)
+                .bodyValue(newMovieInfo)
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody(String.class)
+                .consumeWith(stringEntityExchangeResult -> {
+                    String responseBody=stringEntityExchangeResult.getResponseBody();
+                    System.out.println("responseBody : "+responseBody);
+                    String expectedErrorMessage = "movieInfo.cast must be present,movieInfo.name must be present,movieInfo.year must be a Positive value";
+                    Assertions.assertEquals(expectedErrorMessage, responseBody);
+                });
+    }
+
+    @Test
     public void updateMovieInfo() {
         String movieInfoId = "abc";
         String additionalCast = "Anne Hathaway";
