@@ -73,7 +73,7 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
-    public void getAllMovieInfoById() {
+    public void getMovieInfoById() {
         String movieInfoId="abc";
         webTestClient.get()
                 .uri(MOVIES_INFO_URL+"/{id}",movieInfoId)
@@ -86,6 +86,16 @@ class MoviesInfoControllerIntgTest {
                 });*/
                 .expectBody()
                 .jsonPath("$.name").isEqualTo("Dark Knight Rises");
+    }
+
+    @Test
+    public void getMovieInfoByIdNotFound() {
+        String movieInfoId="abcdef";
+        webTestClient.get()
+                .uri(MOVIES_INFO_URL+"/{id}",movieInfoId)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
@@ -108,6 +118,21 @@ class MoviesInfoControllerIntgTest {
                     Assertions.assertNotNull(updatedMovieInfo.getMovieInfoId());
                     assertThat(updatedMovieInfo.getCast(), hasItem(additionalCast));
                 });
+    }
+
+    @Test
+    public void updateMovieInfoNotFound(){
+        String movieInfoId="abcdef";
+        String additionalCast = "Anne Hathaway";
+        MovieInfo movieInfoWithUpdates=new MovieInfo(null, "Dark Knight Rises",
+                2012, List.of("Christian Bale", "Tom Hardy", additionalCast), LocalDate.parse("2012-07-20"));
+
+        webTestClient.put()
+                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .bodyValue(movieInfoWithUpdates)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
