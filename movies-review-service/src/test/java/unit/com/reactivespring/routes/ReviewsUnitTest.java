@@ -1,6 +1,7 @@
 package com.reactivespring.routes;
 
 import com.reactivespring.domain.Review;
+import com.reactivespring.exceptionhandler.GlobalErrorHandler;
 import com.reactivespring.handler.ReviewHandler;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import com.reactivespring.router.ReviewRouter;
@@ -25,7 +26,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest//No controllers
 @AutoConfigureWebTestClient
-@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class}) //Beans that need to be injected
+@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class, GlobalErrorHandler.class})
+//Beans that need to be injected
 public class ReviewsUnitTest {
 
     @MockBean
@@ -73,7 +75,9 @@ public class ReviewsUnitTest {
                 .bodyValue(review)
                 .exchange()
                 .expectStatus()
-                .isBadRequest();
+                .isBadRequest()
+                .expectBody(String.class)
+                .isEqualTo("rating.movieInfoId : must not be null, rating.negative : please pass a non-negative value");
     }
 
     @Test

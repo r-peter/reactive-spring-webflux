@@ -51,7 +51,7 @@ public class ReviewHandler {
         Set<ConstraintViolation<Review>> violations = validator.validate(review);
         log.info("constraintViolations : {}", violations);
         if(violations.size()>0) {
-            String errorMessage = violations.stream().map(ConstraintViolation::getMessage).sorted().collect(Collectors.joining(","));
+            String errorMessage = violations.stream().map(ConstraintViolation::getMessage).sorted().collect(Collectors.joining(", "));
             throw new ReviewDataException(errorMessage);
         }
     }
