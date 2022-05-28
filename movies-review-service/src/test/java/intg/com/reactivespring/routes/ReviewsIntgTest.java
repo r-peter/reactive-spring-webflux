@@ -72,7 +72,7 @@ public class ReviewsIntgTest {
                 .isEqualTo("rating.movieInfoId : must not be null, rating.negative : please pass a non-negative value");
     }
 
-        @Test
+    @Test
     public void getAllMovieReview() {
         webTestClient.get()
                 .uri(MOVIES_REVIEWS_URL)
@@ -133,7 +133,11 @@ public class ReviewsIntgTest {
                 .expectStatus()
                 .isNotFound()
                 .expectBody(String.class)
-                .isEqualTo("Review not found of the given Review Id unknown");
+                /*OPTION 1
+                       .isEqualTo("Review not found of the given Review Id unknown");
+                       */
+                /*OPTION 2*/
+                .isEqualTo(null);
     }
 
     @Test

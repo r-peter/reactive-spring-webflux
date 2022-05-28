@@ -170,7 +170,11 @@ public class ReviewsUnitTest {
                 .expectStatus()
                 .isNotFound()
                 .expectBody(String.class)
+                /*OPTION 1
                 .isEqualTo("Review not found of the given Review Id 1");
+                */
+                 /*OPTION 2*/
+                .isEqualTo(null);
     }
 
     @Test

@@ -76,19 +76,23 @@ public class ReviewHandler {
     public Mono<ServerResponse> updateReview(ServerRequest request) {
 
         String reviewId = request.pathVariable("id");
-        var existingReview = reviewReactiveRepository.findById(reviewId)
-                .switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not found of the given Review Id " + reviewId)));
+        var existingReview = reviewReactiveRepository.findById(reviewId);
+                /*OPTION 1
+                .switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not found of the given Review Id " + reviewId)));*/
 
-        return existingReview.flatMap(reviewExisting -> request.bodyToMono(Review.class)
-                .map(requestReview -> {
-                    reviewExisting.setComment(requestReview.getComment());
-                    reviewExisting.setRating(requestReview.getRating());
-                    reviewExisting.setMovieInfoId(requestReview.getMovieInfoId());
-                    return reviewExisting;
-                })
-                .flatMap(updatedReview -> reviewReactiveRepository.save(updatedReview))
-                .flatMap(savedReview -> ServerResponse.ok().bodyValue(savedReview))
-        );
+        return existingReview
+                .flatMap(reviewExisting -> request.bodyToMono(Review.class)
+                        .map(requestReview -> {
+                            reviewExisting.setComment(requestReview.getComment());
+                            reviewExisting.setRating(requestReview.getRating());
+                            reviewExisting.setMovieInfoId(requestReview.getMovieInfoId());
+                            return reviewExisting;
+                        })
+                        .flatMap(updatedReview -> reviewReactiveRepository.save(updatedReview))
+                        .flatMap(savedReview -> ServerResponse.ok().bodyValue(savedReview))
+                )
+                /*OPTION 2*/
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     public Mono<ServerResponse> deleteReview(ServerRequest request) {
