@@ -152,6 +152,28 @@ public class ReviewsUnitTest {
     }
 
     @Test
+    public void updateMovieReviewNotFound() {
+        String reviewId = "1";
+        String updatedComment = "Excellent Movie Update";
+        Double updatedRating = 8.5;
+
+        Review reviewWithUpdates = new Review(reviewId, 1L, updatedComment, updatedRating);
+
+        when(reviewReactiveRepository.findById(Mockito.eq(reviewId)))
+                .thenReturn(
+                        Mono.empty());
+
+        webTestClient.put()
+                .uri(MOVIES_REVIEWS_URL + "/{id}", reviewId)
+                .bodyValue(reviewWithUpdates)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+                .expectBody(String.class)
+                .isEqualTo("Review not found of the given Review Id 1");
+    }
+
+    @Test
     public void deleteReviewById() {
         String reviewId = "1";
 

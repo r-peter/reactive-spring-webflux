@@ -59,6 +59,20 @@ public class ReviewsIntgTest {
     }
 
     @Test
+    void addReviewValidation() {
+        Review review = new Review(null, null, "Awesome Movie", -9.0);
+
+        webTestClient.post()
+                .uri(MOVIES_REVIEWS_URL)
+                .bodyValue(review)
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody(String.class)
+                .isEqualTo("rating.movieInfoId : must not be null, rating.negative : please pass a non-negative value");
+    }
+
+        @Test
     public void getAllMovieReview() {
         webTestClient.get()
                 .uri(MOVIES_REVIEWS_URL)
@@ -102,6 +116,24 @@ public class ReviewsIntgTest {
                     assertThat(updatedReview.getComment(), is(updatedComment));
                     assertThat(updatedReview.getRating(), is(updatedRating));
                 });
+    }
+
+    @Test
+    public void updateMovieReviewNotFound() {
+        String reviewId = "unknown";
+        String updatedComment = "Excellent Movie Update";
+        Double updatedRating = 8.5;
+
+        Review reviewWithUpdates = new Review(reviewId, 1L, updatedComment, updatedRating);
+
+        webTestClient.put()
+                .uri(MOVIES_REVIEWS_URL + "/{id}", reviewId)
+                .bodyValue(reviewWithUpdates)
+                .exchange()
+                .expectStatus()
+                .isNotFound()
+                .expectBody(String.class)
+                .isEqualTo("Review not found of the given Review Id unknown");
     }
 
     @Test
