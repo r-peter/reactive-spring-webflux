@@ -60,6 +60,23 @@ public class ReviewsUnitTest {
     }
 
     @Test
+    void addReviewValidation() {
+        Review review = new Review(null, null, "Awesome Movie", -9.0);
+
+        when(reviewReactiveRepository.save(isA(Review.class))).
+                thenReturn(
+                        Mono.just(new Review("abc", 1L, "Awesome Movie", 9.0))
+                );
+
+        webTestClient.post()
+                .uri(MOVIES_REVIEWS_URL)
+                .bodyValue(review)
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
     public void getAllMovieReview() {
         List<Review> reviews = List.of(
                 new Review("abc", 1L, "Awesome Movie", 9.0),
