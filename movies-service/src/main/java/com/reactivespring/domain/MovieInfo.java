@@ -12,6 +12,10 @@ import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
 
+/*
+Note that this is a copy of MovieInfo class without @Document annotation.
+ */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,5 +30,5 @@ public class MovieInfo {
 
     @NotNull
     private List<@NotBlank(message = "movieInfo.cast must be present") String> cast;
-    private LocalDate release_date;
+    private LocalDate releaseDate;
 }

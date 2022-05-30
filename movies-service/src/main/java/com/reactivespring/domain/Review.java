@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/*
+Note that this is a copy of Review class without @Document annotation.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
