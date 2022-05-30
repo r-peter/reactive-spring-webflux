@@ -15,7 +15,12 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"wiremock.reset-mappings-after-each-test=true"})
+/*
+https://stackoverflow.com/questions/55066307/how-to-make-spring-cloud-contract-reset-wiremock-before-or-after-each-test
+*/
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
 @AutoConfigureWireMock(port = 8084) //spin up http server on port 8084. Use this to simulate the required behavior.
@@ -66,6 +71,7 @@ public class MoviesControllerIntgTest {
                     assertThat(movie.getMovieInfo().getName(), is("Batman Begins"));
                     assertThat(movie.getReviewList().size(), is(2));
                 });
+
     }
 
     @Test
@@ -97,6 +103,8 @@ public class MoviesControllerIntgTest {
                 .expectStatus().is4xxClientError()
                 .expectBody(String.class)
                 .isEqualTo("There is no MovieInfo Available for the passed in Id : abc");
+
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/v1/movieinfos/" + movieId)));
     }
 
     @Test
@@ -156,6 +164,47 @@ public class MoviesControllerIntgTest {
                 .exchange()
                 .expectStatus().is5xxServerError()
                 .expectBody(String.class)
-                .isEqualTo("Server Exception in Movie Info Service "+serverErrorMessage);
+                .isEqualTo("Server Exception in Movie Info Service " + serverErrorMessage);
+
+        WireMock.verify(4, WireMock.getRequestedFor(WireMock.urlEqualTo("/v1/movieinfos/" + movieId)));
+    }
+
+    @Test
+    void retrieveMovieByIdReturns5XXErrorWithReview() {
+        String movieId = "abc";
+        String serverErrorMessage = "Review Service Unavailable";
+
+        WireMock.stubFor(
+                WireMock.get(WireMock.urlEqualTo("/v1/movieinfos/" + movieId))
+                        .willReturn(
+                                WireMock.aResponse()
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBodyFile("movieinfo.json")
+                        ));
+        WireMock.stubFor(
+                WireMock.get(WireMock.urlPathEqualTo("/v1/reviews"))
+                        /*
+                        Note that urlPathEqualTo does not take query parameter into account.
+                        This is a shortcut approach.
+                        */
+                        .willReturn(
+                                WireMock.aResponse()
+                                        .withStatus(500)
+                                        .withBody(serverErrorMessage)
+                        ));
+
+        //when
+        webTestClient.get()
+                .uri("/v1/movies/{id}", movieId)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(String.class)
+                .isEqualTo("Server Exception in Movie Reviews Service " + serverErrorMessage);
+
+        /*
+        Note that we are using urlPathMatching to accommodate for query parameters.
+        This is a relaxed way of asserting behavior.
+         */
+        WireMock.verify(4, WireMock.getRequestedFor(WireMock.urlPathMatching("/v1/reviews*")));
     }
 }
