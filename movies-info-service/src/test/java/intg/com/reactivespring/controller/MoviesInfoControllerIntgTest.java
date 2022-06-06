@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -75,26 +76,56 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
-    public void getMovieInfoById() {
-        String movieInfoId="abc";
-        webTestClient.get()
-                .uri(MOVIES_INFO_URL+"/{id}",movieInfoId)
+    public void getAllMovieInfoStream() {
+        MovieInfo newMovieInfo = new MovieInfo(null, "Batman V Superman: Dawn of Justice",
+                2005, List.of("Ben Affleck", "Henry Cavill"), LocalDate.parse("2016-03-25"));
+
+        webTestClient.post()
+                .uri(MOVIES_INFO_URL)
+                .bodyValue(newMovieInfo)
                 .exchange()
-                .expectStatus().is2xxSuccessful()
-              /*  .expectBody(MovieInfo.class)
+                .expectStatus()
+                .isCreated()
+                .expectBody(MovieInfo.class)
                 .consumeWith(movieInfoEntityExchangeResult -> {
                     MovieInfo movieInfo = movieInfoEntityExchangeResult.getResponseBody();
-                    assertNotNull(movieInfo);
-                });*/
+                    Assertions.assertNotNull(movieInfo);
+                    Assertions.assertNotNull(movieInfo.getMovieInfoId());
+                });
+
+        var movieStreamFlux = webTestClient.get()
+                .uri(MOVIES_INFO_URL + "/stream")
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .returnResult(MovieInfo.class)
+                .getResponseBody();
+
+        StepVerifier.create(movieStreamFlux)
+                .assertNext(movieInfo -> Assertions.assertNotNull(movieInfo.getMovieInfoId()))
+                .thenCancel().verify();
+    }
+
+    @Test
+    public void getMovieInfoById() {
+        String movieInfoId = "abc";
+        webTestClient.get()
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                /*  .expectBody(MovieInfo.class)
+                  .consumeWith(movieInfoEntityExchangeResult -> {
+                      MovieInfo movieInfo = movieInfoEntityExchangeResult.getResponseBody();
+                      assertNotNull(movieInfo);
+                  });*/
                 .expectBody()
                 .jsonPath("$.name").isEqualTo("Dark Knight Rises");
     }
 
     @Test
     public void getMovieInfoByIdNotFound() {
-        String movieInfoId="abcdef";
+        String movieInfoId = "abcdef";
         webTestClient.get()
-                .uri(MOVIES_INFO_URL+"/{id}",movieInfoId)
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
                 .exchange()
                 .expectStatus()
                 .isNotFound();
@@ -102,9 +133,9 @@ class MoviesInfoControllerIntgTest {
 
     @Test
     public void getAllMovieByYear() {
-        URI uri =UriComponentsBuilder.fromUriString(MOVIES_INFO_URL)
-                        .queryParam("year", 2005)
-                                .buildAndExpand().toUri();
+        URI uri = UriComponentsBuilder.fromUriString(MOVIES_INFO_URL)
+                .queryParam("year", 2005)
+                .buildAndExpand().toUri();
 
         webTestClient.get()
                 .uri(uri)
@@ -115,14 +146,14 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
-    public void updateMovieInfo(){
-        String movieInfoId="abc";
+    public void updateMovieInfo() {
+        String movieInfoId = "abc";
         String additionalCast = "Anne Hathaway";
-        MovieInfo movieInfoWithUpdates=new MovieInfo(null, "Dark Knight Rises",
+        MovieInfo movieInfoWithUpdates = new MovieInfo(null, "Dark Knight Rises",
                 2012, List.of("Christian Bale", "Tom Hardy", additionalCast), LocalDate.parse("2012-07-20"));
 
         webTestClient.put()
-                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
                 .bodyValue(movieInfoWithUpdates)
                 .exchange()
                 .expectStatus()
@@ -137,14 +168,14 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
-    public void updateMovieInfoNotFound(){
-        String movieInfoId="abcdef";
+    public void updateMovieInfoNotFound() {
+        String movieInfoId = "abcdef";
         String additionalCast = "Anne Hathaway";
-        MovieInfo movieInfoWithUpdates=new MovieInfo(null, "Dark Knight Rises",
+        MovieInfo movieInfoWithUpdates = new MovieInfo(null, "Dark Knight Rises",
                 2012, List.of("Christian Bale", "Tom Hardy", additionalCast), LocalDate.parse("2012-07-20"));
 
         webTestClient.put()
-                .uri(MOVIES_INFO_URL+"/{id}", movieInfoId)
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
                 .bodyValue(movieInfoWithUpdates)
                 .exchange()
                 .expectStatus()
@@ -153,9 +184,9 @@ class MoviesInfoControllerIntgTest {
 
     @Test
     public void deleteMovieInfoById() {
-        String movieInfoId="abc";
+        String movieInfoId = "abc";
         webTestClient.delete()
-                .uri(MOVIES_INFO_URL+"/{id}",movieInfoId)
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
                 .exchange()
                 .expectStatus().isNoContent();
     }
